@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateActivityDto } from './dto/create-activity.dto';
 import { UpdateActivityDto } from './dto/update-activity.dto';
@@ -24,18 +24,25 @@ export class ActivityService {
         });
     }
 
-    findOne(id: number) {
-        return this.prisma.activity.findUnique({
+    async findOne(id: number) {
+        const activity = await this.prisma.activity.findUnique({
             where: { id },
         });
+
+        if (!activity) {
+            throw new NotFoundException('Activity not found');
+        }
+
+        return activity;
     }
 
     update(id: number, dto: UpdateActivityDto) {
-        const data = {
-            ...dto,
-            ...(dto.date && { date: new Date(dto.date) }),
-            ...(dto.image && { image: dto.image }),
-        };
+        const data: any = {};
+
+        if (dto.title) data.title = dto.title;
+        if (dto.description) data.description = dto.description;
+        if (dto.image) data.image = dto.image;
+        if (dto.date) data.date = new Date(dto.date);
 
         return this.prisma.activity.update({
             where: { id },

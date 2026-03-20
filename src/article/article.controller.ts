@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Body, Param, Delete, Patch, UseGuards, ParseIntPipe, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
+import { extname } from 'path';
 import { ArticleService } from './article.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CreateArticleDto } from './dto/create-article.dto';
@@ -25,12 +26,21 @@ export class ArticleController {
     @UseInterceptors(
         FileInterceptor('image', {
             storage: diskStorage({
-            destination: './uploads/articles',
-            filename: (req, file, cb) => {
-                const filename = Date.now() + '-' + file.originalname;
-                cb(null, filename);
-            },
+                destination: './uploads/articles',
+                filename: (req, file, cb) => {
+                    const uniqueName = Date.now() + '-' + Math.round(Math.random() * 1e9);
+                    cb(null, uniqueName + extname(file.originalname));
+                },
             }),
+            fileFilter: (req, file, cb) => {
+                if (!file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
+                    return cb(new Error('Only image files allowed'), false);
+                }
+                cb(null, true);
+            },
+            limits: {
+                fileSize: 2 * 1024 * 1024,
+            },
         }),
     )
     create(
@@ -45,12 +55,22 @@ export class ArticleController {
     @UseInterceptors(
         FileInterceptor('image', {
             storage: diskStorage({
-            destination: './uploads/articles',
-            filename: (req, file, cb) => {
-                const filename = Date.now() + '-' + file.originalname;
-                cb(null, filename);
-            },
+                destination: './uploads/articles',
+                filename: (req, file, cb) => {
+                    const uniqueName = Date.now() + '-' + Math.round(Math.random() * 1e9);
+                    cb(null, uniqueName + extname(file.originalname));
+                },
             }),
+            fileFilter: (req, file, cb) => {
+                if (!file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
+                    return cb(new Error('Only image files allowed'), false);
+                }
+                cb(null, true);
+            },
+            limits: {
+                // batasi file 2mb
+                fileSize: 2 * 1024 * 1024,
+            },
         }),
     )
     update(

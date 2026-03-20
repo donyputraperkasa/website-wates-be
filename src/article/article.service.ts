@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -20,10 +20,16 @@ export class ArticleService {
         });
     }
 
-    findOne(id: number) {
-        return this.prisma.article.findUnique({
-        where: { id },
+    async findOne(id: number) {
+        const article = await this.prisma.article.findUnique({
+            where: { id },
         });
+
+        if (!article) {
+            throw new NotFoundException('Article not found');
+        }
+
+        return article;
     }
 
     update(
@@ -31,12 +37,15 @@ export class ArticleService {
       data: { title?: string; content?: string },
       file?: Express.Multer.File,
     ) {
+      const updateData: any = {};
+
+      if (data.title) updateData.title = data.title;
+      if (data.content) updateData.content = data.content;
+      if (file) updateData.image = file.filename;
+
       return this.prisma.article.update({
         where: { id },
-        data: {
-          ...data,
-          ...(file && { image: file.filename }),
-        },
+        data: updateData,
       });
     }
 

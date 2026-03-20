@@ -26,12 +26,21 @@ export class ActivityController {
     @UseInterceptors(
         FileInterceptor('image', {
             storage: diskStorage({
-            destination: './uploads',
-            filename: (req, file, cb) => {
-                const uniqueName = Date.now() + '-' + Math.round(Math.random() * 1e9);
-                cb(null, uniqueName + extname(file.originalname));
-            },
+                destination: './uploads',
+                filename: (req, file, cb) => {
+                    const uniqueName = Date.now() + '-' + Math.round(Math.random() * 1e9);
+                    cb(null, uniqueName + extname(file.originalname));
+                },
             }),
+            fileFilter: (req, file, cb) => {
+                if (!file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
+                    return cb(new Error('Only image files allowed'), false);
+                }
+                cb(null, true);
+            },
+            limits: {
+                fileSize: 2 * 1024 * 1024,
+            },
         }),
     )
     create(
@@ -49,12 +58,22 @@ export class ActivityController {
     @UseInterceptors(
         FileInterceptor('image', {
             storage: diskStorage({
-            destination: './uploads',
-            filename: (req, file, cb) => {
-                const uniqueName = Date.now() + '-' + Math.round(Math.random() * 1e9);
-                cb(null, uniqueName + extname(file.originalname));
-            },
+                destination: './uploads',
+                filename: (req, file, cb) => {
+                    const uniqueName = Date.now() + '-' + Math.round(Math.random() * 1e9);
+                    cb(null, uniqueName + extname(file.originalname));
+                },
             }),
+            fileFilter: (req, file, cb) => {
+                if (!file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
+                    return cb(new Error('Only image files allowed'), false);
+                }
+                cb(null, true);
+            },
+            limits: {
+                // Batasi ukuran file 2mb
+                fileSize: 2 * 1024 * 1024, 
+            },
         }),
     )
     update(
