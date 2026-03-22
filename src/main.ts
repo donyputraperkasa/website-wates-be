@@ -2,6 +2,9 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { ValidationPipe } from '@nestjs/common';
+// Serve uploaded files from /uploads
+import { join } from 'path';
+import { existsSync, mkdirSync } from 'fs';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -9,8 +12,15 @@ async function bootstrap() {
   // Enable global validation for DTO
   app.useGlobalPipes(new ValidationPipe());
 
-  // Serve uploaded files from /uploads
-  app.useStaticAssets('uploads', {
+
+  const uploadPath = join(process.cwd(), 'uploads');
+
+  // ensure folder exists (important for production like Railway)
+  if (!existsSync(uploadPath)) {
+    mkdirSync(uploadPath, { recursive: true });
+  }
+
+  app.useStaticAssets(uploadPath, {
     prefix: '/uploads',
   });
 
